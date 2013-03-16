@@ -21,6 +21,7 @@ public:
     uint16_t average; 
     byte shift;
     byte cur;
+//TODO rate of averaging?
 };
 
 DTComm_no_buff::DTComm_no_buff()
@@ -31,9 +32,8 @@ DTComm_no_buff::DTComm_no_buff()
 //TODO suppose i want a #define that makes it flag itself as having overflowed.
 //inline int overflowed_p(DTComm* dtc) 
 
-inline void interrupt_fun(DTComm_no_buff* dtc)
+inline void interrupt_fun(DTComm_no_buff* dtc, uint8_t dt)
 {
-    uint8_t dt = delta_t(); 
 //Average changes slowly, until at some point it hits the frequency of comms.
     dtc->average = (255*(dtc->average + dt))/256; 
     
@@ -42,6 +42,8 @@ inline void interrupt_fun(DTComm_no_buff* dtc)
 //NOTE: it just zeros out when done, regular DTComm does something with it.
     dtc->shift >> 1;
 }
+inline void interrupt_fun(DTComm_no_buff* dtc)
+{ return interrupt_fun(dtc, delta_t()); }
 
 inline void reset(DTComm_no_buff* dtc)
 {   dtc->cur = 0; dtc->shift=1; }
@@ -49,14 +51,32 @@ inline void reset(DTComm_no_buff* dtc)
 class DTComm : public Buffer
 {
 public: 
+    DTComm();
     DTComm_no_buff dt;
+//    uint8_t flags; //Dont immediately start rescanning if check fails
+    Fletcher chk;
 }
 
-inline void interrupt_fun(DTComm* dtc)
-{
-    interrupt_fun(&dtc->dt);
-    if( dtc.dt->shift == 0 ) //All shifted out
-    {   receive_byte(dtc, dtc->dt.cur); //Pass on the byte.
-        reset(&dtc->dt); //Allow the thing to get the next byte,
-    }
+DTComm::DTComm()
+{  reset(&dt);
+   reset(&chk);
 }
+
+inline void interrupt_fun(DTComm* dtc, uint8_t dt)
+{
+    if( dtc.dt->shift == 0 ) //All shifted out, go to next byte if `1`(long)
+    {   if( (dt > dtc->dt.average) == ((dtc.dt.cur & 0x08)==0x08) ) //End-of-message.
+        { 
+           //TODO check message checksum, set flag that message just arrived.
+        }
+        else //Pretend it is the last one again.
+        { receive_byte(dtc, dtc->dt.cur); //Pass on the byte.
+          step(&dtc->chk, dt.cur); //Keep check sum
+          reset(&dtc->dt);
+        }
+    }
+    else //Still fetching
+    {   interrupt_fun(&dtc->dt, dt); } 
+}
+inline void interrupt_fun(DTComm* dtc)
+{ return interrupt_fun(dtc, delta_t()); }
