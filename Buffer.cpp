@@ -7,6 +7,10 @@
 //  (at your option) any later version.
 //
 
+#include <stdint.h>
+
+typedef uint8_t byte;
+
 #define Buffer_size 4
 
 class Buffer
@@ -47,7 +51,7 @@ inline byte peek_byte(Buffer* b)
     if( b->i == b->j ) //Read too quickly.
     { Buffer_bug_indicator |= 1; }
 #endif
-    return b->buffer[i];
+    return b->buffer[b->i];
 }
 
 inline byte read_byte(Buffer* b) //Only valid if stuff in the buffer.
@@ -61,27 +65,27 @@ inline byte read_byte(Buffer* b) //Only valid if stuff in the buffer.
     return r;
 }
 
-inline int read_int(Buffer* b)
+inline int16_t read_int(Buffer* b)
 {   
-#if Buffer_size<sizeof(int)
+#if Buffer_large_enough_int //Buffer_size < sizeof int
     Buffer_bug_indicator |= 4; //Buffer not big enough to read int from it.
 #endif
-    int val = *(int*)b->buffer;
+    int16_t val = *(int*)b->buffer;
     b->j = (b->j + sizeof(int))%Buffer_size;
-#if Buffer_size<sizeof(int)
+#if Buffer_large_enough_int //Buffer_size < sizeof int
     if( b->i == b->j ) //Read too quickly.
     { Buffer_bug_indicator |= 2; }
 #endif
     return val;
 }
-inline long read_long(Buffer* b)
+inline int32_t read_long(Buffer* b)
 {
-#if Buffer_size<sizeof(long)
+#if Buffer_large_enough_long //Buffer_size<sizeof(long)
     Buffer_bug_indicator |= 8; //Buffer not big enough to read long from it.
 #endif
-    long val = *(long*)b->buffer;
+    int32_t val = *(long*)b->buffer;
     b->j = (b->j + sizeof(long))%Buffer_size;
-#if Buffer_size<sizeof(int)
+#if Buffer_large_enough_long //Buffer_size<sizeof(long)
     if( b->i == b->j ) //Read too quickly.
     { Buffer_bug_indicator |= 2; }
 #endif
