@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 25-02-2013 Jasper den Ouden.
+//  Copyright (C) 16-03-2013 Jasper den Ouden.
 //
 //  This is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
@@ -20,13 +20,13 @@
 
 int main(int argc, char* argv[])
 {
-    Buffer buffer; //Buffer that is tested.
-    
     srand(time(NULL));
     if( argc==2 )
     {   assert( strcmp(argv[1],"stdin")==0 ); }//Must be specifying stdin.
     else{ assert(argc==1); } //May not do anything else.
-    
+
+    Buffer buffer; //Buffer that is tested.
+        
     printf("Started.\n");
     int at=0;
     while(1) //Generate random stuff.
@@ -71,9 +71,7 @@ int main(int argc, char* argv[])
             receive_byte(&buffer, a[1]);
         }
         for( int i=0 ; i<n ; i++ )
-        {   //int16_t r = read_int(&buffer);
-            byte a[]= {read_byte(&buffer),read_byte(&buffer)};
-            int16_t r = *(int16_t*)a;
+        {   int16_t r = read_int(&buffer);
             if( got[i]!=r )
             {   printf("#Failed %d of %d; %d vs %d", i,n, got[i],r);
                 return -1;

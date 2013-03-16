@@ -8,8 +8,7 @@
 //
 
 #include <stdint.h>
-
-typedef uint8_t byte;
+#include "byte.h"
 
 #ifndef Buffer_size
 #define Buffer_size 4

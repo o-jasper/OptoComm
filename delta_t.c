@@ -9,7 +9,8 @@
 
 //Thanks for the help from 
 // http://www.mythic-beasts.com/~markt/ATmega-timers.html
-void timer2_setup (byte mode, int prescale, byte outmode_A, byte outmode_B, byte capture_mode)
+void timer2_setup (byte mode, int prescale, byte outmode_A, byte outmode_B,
+                   byte capture_mode)
 {
   // enforce field widths for sanity
   mode &= 15 ;
