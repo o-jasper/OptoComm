@@ -18,11 +18,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Buffer buffer; //Buffer that is tested.
-byte in[Buffer_size];
-
 int main(int argc, char* argv[])
 {
+    Buffer buffer; //Buffer that is tested.
+    
     srand(time(NULL));
     if( argc==2 )
     {   assert( strcmp(argv[1],"stdin")==0 ); }//Must be specifying stdin.
@@ -48,7 +47,7 @@ int main(int argc, char* argv[])
                 if( got[i] != r )
                 { 
                     printf("#Failed %d of %d; %d vs %d", i,read_upto, got[i],r);
-                    return 0;
+                    return  -1;
                 }
                 assert(got[i]==r);
             }
@@ -60,26 +59,26 @@ int main(int argc, char* argv[])
             at -= read_upto;
         } while(at!=0);
         //And some other data size.
-/*        int16_t got[Buffer_size];
-        int n = 1+rand()%(Buffer_size/2-2);
+        int16_t got[Buffer_size];
+        int n = 1;//+rand()%(Buffer_size/2-1);
         printf("Integer size for %d\n", n);
         for( int i=0 ; i<n ; i++ )
         {   byte a[2];
             got[i]= rand();
             ((int16_t*)a)[0]= got[i];
-            
             assert( got[i] == *(int16_t*)a );
-            receive_byte(&buffer, a[0]);
+            receive_byte(&buffer, a[0]); //Stuff into buffer.
             receive_byte(&buffer, a[1]);
         }
         for( int i=0 ; i<n ; i++ )
-        {   int16_t r = read_int(&buffer);
+        {   //int16_t r = read_int(&buffer);
+            byte a[]= {read_byte(&buffer),read_byte(&buffer)};
+            int16_t r = *(int16_t*)a;
             if( got[i]!=r )
-            {
-                printf("#Failed %d of %d; %d vs %d", i,n, got[i],r);
-                return 0;
+            {   printf("#Failed %d of %d; %d vs %d", i,n, got[i],r);
+                return -1;
             }
             assert( got[i] == r );
-            }*/
+        }
     }
 }

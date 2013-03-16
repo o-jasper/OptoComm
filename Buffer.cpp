@@ -72,24 +72,15 @@ inline int16_t read_int(Buffer* b)
 #if Buffer_large_enough_int //Buffer_size < sizeof int
     Buffer_bug_indicator |= 4; //Buffer not big enough to read int from it.
 #endif
-    int16_t val = *(int16_t*)b->buffer;
-    b->j = (b->j + sizeof(int16_t))%Buffer_size;
-#if Buffer_large_enough_int //Buffer_size < sizeof int
-    if( b->i == b->j ) //Read too quickly.
-    { Buffer_bug_indicator |= 2; }
-#endif
-    return val;
+    byte a[2]= {read_byte(b),read_byte(b)};
+    return *(int16_t*)a;
 }
 inline int32_t read_long(Buffer* b)
 {
 #if Buffer_large_enough_long //Buffer_size<sizeof(long)
     Buffer_bug_indicator |= 8; //Buffer not big enough to read long from it.
 #endif
-    int32_t val = *(int32_t*)b->buffer;
-    b->j = (b->j + sizeof(int32_t))%Buffer_size;
-#if Buffer_large_enough_long //Buffer_size<sizeof(long)
-    if( b->i == b->j ) //Read too quickly.
-    { Buffer_bug_indicator |= 2; }
-#endif
-    return val;
+    byte a[4]= {read_byte(b),read_byte(b),
+                read_byte(b),read_byte(b)};
+    return *(int32_t*)a;
 }
