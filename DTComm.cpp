@@ -42,7 +42,3 @@ inline void report_dt(DTComm* dtc, uint8_t dt)
     else //Still fetching
     {   report_dt(&dtc->dt, dt); } 
 }
-#ifndef DTComm_PC
-inline void report_dt(DTComm* dtc)
-{ return report_dt(dtc, delta_t()); }
-#endif

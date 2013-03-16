@@ -17,8 +17,6 @@
 //
 //Also the idea is that some of these may be caught?
 
-#define DTComm_PC
-
 #include "../DTComm_no_buff.cpp"
 
 #include <assert.h>
