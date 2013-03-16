@@ -9,6 +9,7 @@
 
 //Computer side test for Buffer.
 
+#define Buffer_size 8
 #include "../Buffer.cpp"
 
 #include <time.h>
@@ -28,47 +29,57 @@ int main(int argc, char* argv[])
     else{ assert(argc==1); } //May not do anything else.
     
     printf("Started.\n");
-    int n=0,m=0;
+    int at=0;
     while(1) //Generate random stuff.
     { 
-        if( 1 ) //m!=0 || rand()%2 )
-        {   printf("b\n");
-            byte got[Buffer_size];
-            int n = 1+ rand()%(Buffer_size-m-1); //TODO want to read some arbitrary ammount.
-            for( int i=m ; i<n ; i++ )
-            {   printf("*\n");
-                if( argc==2 ){ got[i] = fgetc(stdin); }
-                else         { got[i] = rand()%256; }
-                receive_byte(&buffer, got[i]);
+        do //Do a whole bunch of byte-reading and receiving.
+        {   byte got[Buffer_size];
+            int add_upto = at + rand()%(Buffer_size-at); //Arbitrary lengths received.
+            printf("at %d add_upto %d ", at,add_upto);
+            for( ; at < add_upto ; at++ )
+            {   if( argc==2 ){ got[at] = fgetc(stdin); }
+                else         { got[at] = rand()%256; }
+                receive_byte(&buffer, got[at]);
             }
-            for( int i=0 ; i<n ; i++ )
+            assert(at==add_upto);
+            int read_upto = rand()%(at+1); //And arbitrary lengths read.
+            for( int i=0 ; i<read_upto ; i++ )
             {   byte r = read_byte(&buffer);
                 if( got[i] != r )
                 { 
-                    printf("#Failed %d of %d,\n %d vs %d", i,n, got[i],r);
+                    printf("#Failed %d of %d; %d vs %d", i,read_upto, got[i],r);
                     return 0;
                 }
                 assert(got[i]==r);
             }
-        }
-        else
-        {   printf("i\n");
-            int16_t got[Buffer_size];
+            //And get rid of the data we already tested.
+            printf("read_upto %d\n", read_upto); 
+            assert( at>=read_upto );
+            if( at>read_upto )
+            { memmove(got, got+read_upto, at-read_upto); }//Move it backwards.
+            at -= read_upto;
+        } while(at!=0);
+        //And some other data size.
+/*        int16_t got[Buffer_size];
+        int n = 1+rand()%(Buffer_size/2-2);
+        printf("Integer size for %d\n", n);
+        for( int i=0 ; i<n ; i++ )
+        {   byte a[2];
+            got[i]= rand();
+            ((int16_t*)a)[0]= got[i];
             
-            int n = 1+rand()%(2*(Buffer_size-2));
-            for( int i=0 ; i<n ; i++ )
-            {   printf("*\n");
-                union
-                {   int16_t v;
-                    byte a[2];
-                } x;
-                x.v = rand();
-                got[i]= x.v;
-                receive_byte(&buffer, x.a[0]);
-                receive_byte(&buffer, x.a[1]);
-            }
-            for( int i=0 ; i<n ; i++ )
-            {  assert( got[i] == read_int(&buffer) ); }
+            assert( got[i] == *(int16_t*)a );
+            receive_byte(&buffer, a[0]);
+            receive_byte(&buffer, a[1]);
         }
+        for( int i=0 ; i<n ; i++ )
+        {   int16_t r = read_int(&buffer);
+            if( got[i]!=r )
+            {
+                printf("#Failed %d of %d; %d vs %d", i,n, got[i],r);
+                return 0;
+            }
+            assert( got[i] == r );
+            }*/
     }
 }

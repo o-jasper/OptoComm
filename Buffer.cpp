@@ -11,7 +11,9 @@
 
 typedef uint8_t byte;
 
+#ifndef Buffer_size
 #define Buffer_size 4
+#endif
 
 class Buffer
 {
@@ -70,8 +72,8 @@ inline int16_t read_int(Buffer* b)
 #if Buffer_large_enough_int //Buffer_size < sizeof int
     Buffer_bug_indicator |= 4; //Buffer not big enough to read int from it.
 #endif
-    int16_t val = *(int*)b->buffer;
-    b->j = (b->j + sizeof(int))%Buffer_size;
+    int16_t val = *(int16_t*)b->buffer;
+    b->j = (b->j + sizeof(int16_t))%Buffer_size;
 #if Buffer_large_enough_int //Buffer_size < sizeof int
     if( b->i == b->j ) //Read too quickly.
     { Buffer_bug_indicator |= 2; }
@@ -83,8 +85,8 @@ inline int32_t read_long(Buffer* b)
 #if Buffer_large_enough_long //Buffer_size<sizeof(long)
     Buffer_bug_indicator |= 8; //Buffer not big enough to read long from it.
 #endif
-    int32_t val = *(long*)b->buffer;
-    b->j = (b->j + sizeof(long))%Buffer_size;
+    int32_t val = *(int32_t*)b->buffer;
+    b->j = (b->j + sizeof(int32_t))%Buffer_size;
 #if Buffer_large_enough_long //Buffer_size<sizeof(long)
     if( b->i == b->j ) //Read too quickly.
     { Buffer_bug_indicator |= 2; }
