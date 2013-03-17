@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     else{ assert(argc==1); } //May not do anything else.
 
     Buffer buffer; //Buffer that is tested.
-        
+    
     printf("Started.\n");
     int at=0;
     while(1) //Generate random stuff.

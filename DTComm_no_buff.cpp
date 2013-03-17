@@ -32,16 +32,23 @@ DTComm_no_buff::DTComm_no_buff()
 //TODO suppose i want a #define that makes it flag itself as having overflowed.
 //inline int overflowed_p(DTComm* dtc) 
 
-inline void report_dt(DTComm_no_buff* dtc, uint8_t dt)
-{
-//Average changes slowly, until at some point it hits the frequency of comms.
-    dtc->average = (255*(dtc->average + dt))/256; 
-    
-    if( 256*dt > dtc->average ) //Put a one if longer than average.
+//Report, but dont update average.
+inline void quick_report_dt(DTComm_no_buff* dtc, uint8_t dt)
+{   
+    if( (256*dt) < dtc->average ) //Put a one if longer than average.
     {   dtc->cur |= dtc->shift; }
 //NOTE: it just zeros out when done, regular DTComm does something with it.
     dtc->shift = dtc->shift << 1;
 }
+
+inline void report_dt(DTComm_no_buff* dtc, uint8_t dt, int rate)
+{
+//Average changes slowly, until at some point it hits the frequency of comms.
+    dtc->average = (rate*(dtc->average + dt))/(rate+1); 
+    return quick_report_dt(dtc, dt);
+}
+inline void report_dt(DTComm_no_buff* dtc, uint8_t dt)
+{ return report_dt(dtc, dt,255); }
 
 inline void reset(DTComm_no_buff* dtc)
 {   dtc->cur = 0; dtc->shift=1; }

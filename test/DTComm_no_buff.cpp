@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
         printf("%d\n",enter);
         
         for( byte shift=1 ; shift!=0 ; shift = shift<<1 )
-        {   report_dt(&dtc, (enter&shift) ? 128 : 64 ); }
+        {   report_dt(&dtc, (enter&shift) ? 64 : 128 ); }
         
         printf("%d vs %d ; av %d", enter, dtc.cur,dtc.average/256); //Compare results.
         printf(enter==dtc.cur ? "        *\n" : "\n");
