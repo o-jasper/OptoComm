@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 16-03-2013 Jasper den Ouden.
+//  Copyright (C) 27-03-2013 Jasper den Ouden.
 //
 //  This is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
@@ -24,8 +24,8 @@ inline void reset(Fletcher* f)
 
 inline void step(Fletcher* f, uint8_t data)
 { 
-//Pretends it is nine bits, so it is never zero, or 2^9-1
-    f->a = (f->a + data + (data>127 ? 0 : 256))%511;
+//Adds one so the effective input is never zero, pretends there are nine bits.
+    f->a = ((f->a + data) + 1)%511;
     f->b = (f->a + f->b)%511;
 }
 

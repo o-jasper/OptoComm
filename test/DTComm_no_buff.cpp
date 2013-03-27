@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 16-03-2013 Jasper den Ouden.
+//  Copyright (C) 27-03-2013 Jasper den Ouden.
 //
 //  This is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
     DTComm_no_buff dtc;
     
-    dtc.average = 256*255; 
+    dtc.average = 256*255;
     
     printf("%d", rand());
     while(1)
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
         else         { enter = rand()%256; }
         printf("%d\n",enter);
         
-        for( byte shift=1 ; shift!=0 ; shift = shift<<1 )
+        for( byte shift=1 ; shift!=0 ; shift = shift<<1 ) //Send it.
         {   report_dt(&dtc, (enter&shift) ? 64 : 128 ); }
         
         printf("%d vs %d ; av %d", enter, dtc.cur,dtc.average/256); //Compare results.
