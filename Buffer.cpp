@@ -10,26 +10,27 @@
 #include <stdint.h>
 #include "byte.h"
 
-#ifndef Buffer_size
-#define Buffer_size 4
-#endif
-
 class Buffer
 {
 public:
-    Buffer();
-//Size: 2 + Buffer_size bytes.
+    Buffer(byte* array,int length);
     uint8_t i,j;
-    byte buffer[Buffer_size];
+    int len;
+    byte* buffer;
 };
 
-Buffer::Buffer()
-{   i=0; j=0; }
+Buffer::Buffer(byte* array,int length)
+{   i=0; j=0;
+    buffer = array;
+    len=length;
+}
+void reset(Buffer* b)
+{   b->i=0; b->j=0; }
 
 //How much is ready in buffer.
 inline int8_t buffer_cnt(Buffer* b)
 {   int8_t n = b->i - b->j;
-    return n<0 ? n + Buffer_size : n;
+    return n<0 ? n + b->len : n;
 }
 //Return if at least one byte ready.
 inline bool byte_ready_p(Buffer* b)
@@ -38,7 +39,7 @@ inline bool byte_ready_p(Buffer* b)
 inline void receive_byte(Buffer* b, byte cur)
 {
     b->buffer[b->i] = cur; //Register it.
-    b->i = (b->i + 1)%Buffer_size; //Increment buffer pos.
+    b->i = (b->i + 1)%b->len; //Increment buffer pos.
         
 #if defined( Buffer_bug_indicator )
     if( b->i == b->j ) //Didnt read quickly enough.
@@ -58,7 +59,7 @@ inline byte peek_byte(Buffer* b)
 inline byte read_byte(Buffer* b) //Only valid if stuff in the buffer.
 {
     byte r = b->buffer[b->j];
-    b->j = (b->j + 1)%Buffer_size;
+    b->j = (b->j + 1)%b->len;
 #if defined( Buffer_bug_indicator )
     if( b->i == b->j ) //Read too quickly.
     { Buffer_bug_indicator |= 2; }
@@ -68,7 +69,7 @@ inline byte read_byte(Buffer* b) //Only valid if stuff in the buffer.
 
 inline int16_t read_int(Buffer* b)
 {   
-#if Buffer_large_enough_int //Buffer_size < sizeof int
+#if Buffer_large_enough_int //b->len < sizeof int
     Buffer_bug_indicator |= 4; //Buffer not big enough to read int from it.
 #endif
     byte a[2]= {read_byte(b),read_byte(b)};
@@ -76,7 +77,7 @@ inline int16_t read_int(Buffer* b)
 }
 inline int32_t read_long(Buffer* b)
 {
-#if Buffer_large_enough_long //Buffer_size<sizeof(long)
+#if Buffer_large_enough_long //b->len<sizeof(long)
     Buffer_bug_indicator |= 8; //Buffer not big enough to read long from it.
 #endif
     byte a[4]= {read_byte(b),read_byte(b),

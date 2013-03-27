@@ -9,7 +9,6 @@
 
 //Computer side test for Buffer.
 
-#define Buffer_size 8
 #include "../Buffer.cpp"
 
 #include <time.h>
@@ -18,22 +17,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define Buffer_len 5
+byte b_arr[Buffer_len];
+
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
     if( argc==2 )
     {   assert( strcmp(argv[1],"stdin")==0 ); }//Must be specifying stdin.
     else{ assert(argc==1); } //May not do anything else.
-
-    Buffer buffer; //Buffer that is tested.
+    
+    Buffer buffer(b_arr,Buffer_len); //Buffer that is tested.
     
     printf("Started.\n");
     int at=0;
     while(1) //Generate random stuff.
     { 
         do //Do a whole bunch of byte-reading and receiving.
-        {   byte got[Buffer_size];
-            int add_upto = at + rand()%(Buffer_size-at); //Arbitrary lengths received.
+        {   byte got[Buffer_len];
+            int add_upto = at + rand()%(Buffer_len-at); //Arbitrary lengths received.
             printf("at %d add_upto %d ", at,add_upto);
             for( ; at < add_upto ; at++ )
             {   if( argc==2 ){ got[at] = fgetc(stdin); }
@@ -59,8 +61,8 @@ int main(int argc, char* argv[])
             at -= read_upto;
         } while(at!=0);
         //And some other data size.
-        int16_t got[Buffer_size];
-        int n = 1;//+rand()%(Buffer_size/2-1);
+        int16_t got[Buffer_len];
+        int n = 1;//+rand()%(Buffer_len/2-1);
         printf("Integer size for %d\n", n);
         for( int i=0 ; i<n ; i++ )
         {   byte a[2];
