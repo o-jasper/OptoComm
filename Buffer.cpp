@@ -19,24 +19,27 @@ public:
     byte* buffer;
 };
 
+inline void reset(Buffer* b)
+{   b->i=0; b->j=0; }
 Buffer::Buffer(byte* array,int length)
-{   i=0; j=0;
+{   reset(this);
     buffer = array;
     len=length;
 }
-void reset(Buffer* b)
-{   b->i=0; b->j=0; }
 
-//How much is ready in buffer.
-inline int8_t buffer_cnt(Buffer* b)
-{   int8_t n = b->i - b->j;
-    return n<0 ? n + b->len : n;
-}
 //Return if at least one byte ready.
 inline bool byte_ready_p(Buffer* b)
 { return b->i!= b->j; }
 
-inline void receive_byte(Buffer* b, byte cur)
+//How much is ready in buffer.
+inline int8_t byte_cnt(Buffer* b)
+{   int8_t n = b->i - b->j;
+    return n<0 ? n + b->len : n;
+}
+inline int bits_cnt(Buffer* b)
+{   return 8*byte_cnt(b); }
+
+inline void write_byte(Buffer* b, byte cur)
 {
     b->buffer[b->i] = cur; //Register it.
     b->i = (b->i + 1)%b->len; //Increment buffer pos.
@@ -45,6 +48,30 @@ inline void receive_byte(Buffer* b, byte cur)
     if( b->i == b->j ) //Didnt read quickly enough.
     { Buffer_bug_indicator |= 1; }
 #endif
+}
+inline void write_bytes(Buffer* b, byte *arr,int len)
+{   for( int i=0 ; i<len ; i++ )
+    {   write_byte(b, arr[i]); }
+}
+
+//Write, flushing the current data.
+void write_flush(Buffer* b, byte* array,int len, int max_len)
+{   b->i = 0;
+    b->j = len;
+    b->len = max_len;
+    b->buffer = array;
+}
+void write_flush(Buffer* b, byte* array,int len)
+{   write_flush(b, array,len, len); }
+void swap_out_buffer(Buffer* b, byte* array,int len)
+{   write_flush(b, array,0,len); }
+
+//Writes, flushing, but copying the data.
+int write_flush_copy(Buffer* b, byte* array,int len)
+{   if( b->len < len ){ return -1; }
+    b->i = 0;
+    b->j = len;
+    memcpy((void*)b->buffer, array, len);
 }
 
 inline byte peek_byte(Buffer* b)

@@ -36,14 +36,21 @@ one to an ATMega pin, for a long pulse, that pin to `OUTPUT`, for short to
 ### Internal timing
 TODO a timed interrupt, i suppose.
 
-## Receiving
-Stuff in `delta_t.c` uses
+## Short description of the files
+
+`delta_t.c` uses
 [advanced timer use from mythic-beasts.com/~markt](http://www.mythic-beasts.com/~markt/ATmega-timers.html), and arduinos `timer_setup` to determine time differences.
 
 `Buffer.cpp` implements a basic buffer.
 
-`DTMsg.cpp` is intended to be 'the receiver for use'. It uses `Fletcher.cpp` to make
-and check checksums.
+`Fletcher.cpp` checksums.
+
+`DtReceive.cpp` does the receiving in the sense that it assumes it gets a
+series of numbers; the durations between pulses. Checks messages `Fletcher.cpp`.
+
+`DtSend.cpp` sends the data, well has a `read_bit`, which can be used to look
+at the data a bit at a time and send it. It also makes checksums at the point it
+is being sent.
 
 `unused/` contains sources i currently dont have a use for.
 (The idea of messages seems more useful than that of streams in microcontrollers..)

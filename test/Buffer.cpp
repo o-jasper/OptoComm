@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
             for( ; at < add_upto ; at++ )
             {   if( argc==2 ){ got[at] = fgetc(stdin); }
                 else         { got[at] = rand()%256; }
-                receive_byte(&buffer, got[at]);
+                write_byte(&buffer, got[at]);
             }
             assert(at==add_upto);
             int read_upto = rand()%(at+1); //And arbitrary lengths read.
@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
             got[i]= rand();
             ((int16_t*)a)[0]= got[i];
             assert( got[i] == *(int16_t*)a );
-            receive_byte(&buffer, a[0]); //Stuff into buffer.
-            receive_byte(&buffer, a[1]);
+            write_byte(&buffer, a[0]); //Stuff into buffer.
+            write_byte(&buffer, a[1]);
         }
         for( int i=0 ; i<n ; i++ )
         {   int16_t r = read_int(&buffer);
