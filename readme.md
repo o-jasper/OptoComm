@@ -6,13 +6,13 @@ a whole range of time differences.
 
 The 'protocol' is to use three different durations;
 
-    short                   : 0
-    long                    : 1
+    short                   : 1
+    long                    : 0
     extra long; > 2*average : end of message
     
-Messages end in checksums(currently a 'vapidly chosen' Fletcher variant) 
-otherwise people determine what a checksum looks like. For instance starting
-with a byte identifying what the message is about. 
+Messages end in checksums, currently a Fletchers otherwise people determine what
+a checksum looks like. For instance starting with a byte identifying what the
+message is about.
 
 The whole idea is that the connection may be unreliable, basically any missed
 data is viewed as 'gone' in this way. Communications as one sided `DTMsg` come
@@ -23,7 +23,7 @@ used to send messages by request, or manage communication otherwise.
 One worry is that the chip isnt ready to receive(for instance old message still
 waiting to be discarded)in some pattern, matching the pattern in data is send;
 that particular messages get 'unlucky' and never get sent. You might want to
-use patterns that avoid this.
+use patterns of sending data that avoid this.
 
 ## Sending
 
@@ -38,13 +38,15 @@ TODO a timed interrupt, i suppose.
 
 ## Receiving
 Stuff in `delta_t.c` uses
-[advanced timer use from mythic-beasts.com/~markt](http://www.mythic-beasts.com/~markt/ATmega-timers.html), and arduinos `timer_setup`.
+[advanced timer use from mythic-beasts.com/~markt](http://www.mythic-beasts.com/~markt/ATmega-timers.html), and arduinos `timer_setup` to determine time differences.
 
 `Buffer.cpp` implements a basic buffer.
 
-`DTComm_no_buff.cpp` implements what the interrupt might look like.
+`DTMsg.cpp` is intended to be 'the receiver for use'. It uses `Fletcher.cpp` to make
+and check checksums.
 
-`DTComm.cpp` is intended to have 'the receiver for use'. It contains
+`unused/` contains sources i currently dont have a use for.
+(The idea of messages seems more useful than that of streams in microcontrollers..)
 
 A data and offset checker, is also needed, by far most possibilities must not
 pass, because it will catch a lot of non-data when it has not yet found the time
@@ -59,4 +61,4 @@ difference. The current idea is to use `Fletcher
 
 # License
 
-GPLv3
+GPLv3, see `doc/gpl-3.0.txt`

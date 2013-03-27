@@ -3,6 +3,9 @@
 */*~
 */.#*
 
+readme.html
+
 test/Buffer
 test/DTComm_no_buff
 test/DTMsg
+unused/test/DTComm_no_buff
