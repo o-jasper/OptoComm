@@ -9,10 +9,10 @@
 
 #include "byte.h"
 
-class DTMsg 
+class DtReceive 
 {
 public: 
-    DTMsg(byte* array,int max_length);
+    DtReceive(byte* array,int max_length);
 
     uint16_t average;
     
@@ -21,26 +21,26 @@ public:
     int len,max_len;
 };
 
-void reset(DTMsg* dtm)
+void reset(DtReceive* dtm)
 {
     dtm->len = 0;
     dtm->cur = 0; dtm->shift=1;
 }
-inline void discard(DTMsg* dtm) //Done with message.
+inline void discard(DtReceive* dtm) //Done with message.
 { reset(dtm); }
 
-void swap_arr(DTMsg* dtm, byte* array,int max_length)
+void swap_arr(DtReceive* dtm, byte* array,int max_length)
 {   dtm->arr = array;
     dtm->max_len = max_length;
 }
 
-inline DTMsg::DTMsg(byte* array,int max_length)
+inline DtReceive::DtReceive(byte* array,int max_length)
 {   swap_arr(this, array,max_length);
     reset(this);
     average=0;
 }
                     
-inline void report_dt(DTMsg* dtm, uint8_t dt, uint8_t rate)
+inline void report_dt(DtReceive* dtm, uint8_t dt, uint8_t rate)
 {    
     if( dtm->shift==255 ) //Old message not processed yet.(screw it.)
     {  return; }
@@ -66,7 +66,7 @@ inline void report_dt(DTMsg* dtm, uint8_t dt, uint8_t rate)
         dtm->cur=0; dtm->shift = 1; //Get ready for the next byte.
     }
 }
-inline void report_dt(DTMsg* dtm, uint8_t dt)
+inline void report_dt(DtReceive* dtm, uint8_t dt)
 {    report_dt(dtm, dt,255); }
 
 //_you_ have to `reset` the buffer when done with it, 
@@ -75,7 +75,7 @@ inline void report_dt(DTMsg* dtm, uint8_t dt)
 //  1      if still receiving.
 //  2,4,6  if doesnt validate.(two distinct ways)
 //  8      unacceptably short.
-char msg_fail_p(DTMsg* dtm) 
+char msg_fail_p(DtReceive* dtm) 
 {   if( dtm->shift!=255 ){   return 1; } //Still receiving.
     if( dtm->len <= 4 )  { return 8; } //Unacceptably short.
     Fletcher chk,nchk; //Calculate checksums.
@@ -89,5 +89,5 @@ char msg_fail_p(DTMsg* dtm)
     return ret;
 }
 //Returns the pinter to the array.
-byte* msg_array(DTMsg* dtm)
+byte* msg_array(DtReceive* dtm)
 { return dtm->arr; }

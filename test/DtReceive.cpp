@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <signal.h>
 
-#include "../DTMsg.cpp"
+#include "../DtReceive.cpp"
 
 #define GEN_MSG_CNT 21
 char messages[GEN_MSG_CNT][32]=
@@ -41,7 +41,7 @@ int msg_i,msg_j; //Which message and where in it.(_bit_)
 unsigned have_delay = 0;
 
 byte _receiver_arr[256];
-DTMsg receiver(_receiver_arr,256);
+DtReceive receiver(_receiver_arr,256);
 
 double fail_prob = 0.001, read_prob = 1;
 

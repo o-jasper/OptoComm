@@ -6,6 +6,5 @@
 readme.html
 
 test/Buffer
-test/DTComm_no_buff
-test/DTMsg
+test/DtReceive
 unused/test/DTComm_no_buff
