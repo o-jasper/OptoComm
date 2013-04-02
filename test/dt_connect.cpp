@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 27-03-2013 Jasper den Ouden.
+//  Copyright (C) 02-04-2013 Jasper den Ouden.
 //
 //  This is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
@@ -30,36 +30,32 @@
 #include "../DtSend.cpp"
 
 #define GEN_MSG_CNT 21
+
+double fail_prob = 0.001; //Chances of success.
+
+int send=0, got=0;
+long try_cnt[GEN_MSG_CNT]; //Keep record of success rate.
+long success_cnt[GEN_MSG_CNT], false_success_cnt[GEN_MSG_CNT];
+long too_short_cnt[GEN_MSG_CNT];
+
 char messages[GEN_MSG_CNT][32]=
 {".Zero", ".One", ".Two", ".Three", ".Four",".Five",".Six",".Seven",".Eight",".Nine",".Ten",
  ".Eleven", ".Twelve", ".Thirteen", ".Fourteen",".Fifteen",".Sixteen",".Seventeen",
  ".Eighteen",".Nineteen",".Twenty"};
 
-long try_cnt[GEN_MSG_CNT];
-long success_cnt[GEN_MSG_CNT], false_success_cnt[GEN_MSG_CNT];
-long too_short_cnt[GEN_MSG_CNT];
+int16_t msg_i; //Which message currently chosen.
+unsigned have_delay = 0; //Delay 'in the pipeline'
 
-int16_t msg_i; uint8_t status;
-
-unsigned have_delay = 0;
-
-byte _sender_arr[256];
-DtSend sender(_sender_arr,256);
-
-byte _receiver_arr[256];
-DtReceive receiver(_receiver_arr,256);
-
-double fail_prob = 0.001, read_prob = 1;
-
-int send=0, got=0;
-
-void sdelay()
+void add_delay(int add)
 {
-    if( rand() > fail_prob*RAND_MAX ) //Give it to  receiver.
-    {  report_dt(&receiver, (uint8_t)have_delay); 
-       have_delay = 0;
-    }
+    have_delay+= add; //TODO could add random distributions to the actual delay.
 }
+
+void sdelay();
+//Sender, shouldnt use anything from the sender, except through sdelay.
+uint8_t status; //Current status of the sender.
+byte _sender_arr[32]; //Array for the temporary buffer
+DtSend sender(_sender_arr,32);
 
 void sender_next_message()
 {
@@ -75,11 +71,11 @@ void sender_next_message()
 void sender_act()
 {
     if( any_bits_left(&sender) ) //Just send what is in the buffer.
-    {   have_delay += (!read_bit(&sender) ? 100 : 50); }
+    {   add_delay(!read_bit(&sender) ? 100 : 50); }
     else //Otherwise, send end sign, or progress.
     {   
         if( status== msg_send_end )
-        {   have_delay += 200;
+        {   add_delay(200); //Send message end indicator.
             sender_next_message();
         }
         else
@@ -87,8 +83,18 @@ void sender_act()
                                      (byte*)messages[msg_i]+1,strlen(messages[msg_i]+1),
                                      _sender_arr,256); 
             sender_act(); 
-            return;
         }
+    }
+}
+//Receiver, shouldnt use anything from the sender.
+byte _receiver_arr[256];
+DtReceive receiver(_receiver_arr,256);
+
+void sdelay()
+{
+    if( rand() > fail_prob*RAND_MAX ) //Give it to  receiver.
+    {  report_dt(&receiver, (uint8_t)have_delay); 
+       have_delay = 0;
     }
 }
 
@@ -118,7 +124,7 @@ void receiver_act()
         printf("Error: %d?", r); break;
     }
 }
-
+//Reporting about stuff.
 void tell_msg()
 {   printf("(id %d)(len %d) %s\n", 
            receiver.arr[0],receiver.len, receiver.arr+1);
@@ -147,25 +153,24 @@ void tell_overall(int dud)
     
     exit(1);
 }
-
+//Main loop.
 int main(int argc, char* argv[])
 {
     signal(SIGINT, tell_overall);
     signal(SIGTERM, tell_overall);
     
     srand(time(NULL));
-    printf("Started.\n");
     for( int i=0 ; i< GEN_MSG_CNT ; i++ ) //Reset counters.
     {   messages[i][0]= i;
         try_cnt[i] = 0;         success_cnt[i]=0;
         false_success_cnt[i]=0; too_short_cnt[i]=0;
     }
     
+    printf("Started.\n");
     receiver.average = 78*255;
     status = msg_send_end;
-    while(1)
-    {
-        sender_act();
+    while(1) //Just look at what the sender and receiver do.
+    {   sender_act();
         receiver_act();
     }
 }
