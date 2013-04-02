@@ -26,10 +26,10 @@ inline DtSend::DtSend(byte* array,int len)
 //Returns if any bits are left.
 // If there are any left, you may not start writing the next message.
 int any_bits_left(DtSend* dts)
-{   return dts->shift==255 || byte_ready_p(dts); }
-
+{   return dts->shift!=128 || byte_ready_p(&dts->b); }
+//Returns number of bits left.
 int bits_cnt(DtSend* dts)
-{   int ret = 8*byte_cnt(&b->dts);
+{   int ret = 8*byte_cnt(&dts->b);
     switch(dts->cur)
     {   case 0:   return ret;
         case 1:   return ret + 7;
@@ -69,7 +69,7 @@ void swap_out_buffer(DtSend* dts, byte* array,int len)
 //Flushes old message, copying it entirely.
 int flush_replace_msg_cpy(DtSend* dts, byte* array,int len)
 {   if( dts->b.len < len ){ return -1; }
-    int ret = any_bits_left();
+    int ret = any_bits_left(dts);
     dts->shift = 0;
     write_flush_copy(&dts->b, array,len);
     return ret;
@@ -79,7 +79,7 @@ int flush_replace_msg_cpy(DtSend* dts, byte* array,int len)
 // (This is used to send out the data bit by bit.)
 byte read_bit(DtSend* dts)
 {
-    dts->shift = dtm->shift << 1;
+    dts->shift = dts->shift << 1;
     if( dts->shift ==0 ) //Current byte ran out.
     {   dts->cur = read_byte(&dts->b);
         //Add to checksums.
@@ -93,14 +93,10 @@ byte read_bit(DtSend* dts)
 //Finalizes a message by setting `finalize_i` and writing the fletcher sum.
 void finalize_message(DtSend* dts)
 {
-    union
-    {   uint16_t chk;
-        byte arr[2];
-    }
-    chk = sum(&dts->chk); //Write both checksums.
-    write_byte(&dts->b, arr+0); write_byte(&dts->b, arr+1);
-    chk = sum(&dts->nchk);
-    write_byte(&dts->b, arr+0); write_byte(&dts->b, arr+1);
+    int16_t chk_i = sum(&dts->chk); //Write both checksums.
+    write_bytes(&dts->b, (byte*)&chk_i,2);
+    chk_i = sum(&dts->nchk);
+    write_bytes(&dts->b, (byte*)&chk_i,2);
     //Reset both.
     reset(&dts->chk); reset(&dts->nchk);
 }
@@ -120,25 +116,27 @@ int8_t absorb_bytes(DtSend* dts, byte* ref, int8_t at, uint32_t bits, uint8_t le
 
 enum //Non-data statusses of data sending.
 {
-    msg_id_1 = 128;
-    msg_id_2 = 129;
-    msg_finalized = 130;
-    msg_send_end = 131;
+    msg_id_1 = 128, msg_id_2 = 129,
+    msg_finalized = 130,
+    msg_send_end = 131,
 };
 
 //Does the handling of a message, including identity, and finalizing. 
 // Status starts at 32 for 1-bit identity and 33 for two.
-//The return value is the resulting status.
-int8_t message_chopper(DtSend* dts, uint16_t id,int8_t status, byte* ref, 
+//The return value is the resulting status, status changes:
+// `msg_id_1` or `msg_id_2`  For two lengths of ids.
+// `0`                       Zero during the message
+// `msg_finalized`           Indicates the checksums are being send.
+// `msg_send_end`            End of the message.(checksum is sent.
+int8_t message_chopper(DtSend* dts, uint16_t id,uint8_t status, byte* ref, 
                        uint32_t bits,uint8_t len)
 {
     switch( status )
     {
-
      //Send identity.(first)
       case msg_id_1: write_byte(dts, (byte)id);      return 0;
       case msg_id_2: write_bytes(dts, (byte*)&id,2); return 0;
-      case msg_finalized: return msg_send_end;
+      case msg_finalized: case msg_send_end: return msg_send_end;
      //Which goes to the part where the message is sent.
       default: //Now, `status` indicates where on the data.
           if( status >= len ) //Message is done, send checksums, wrap up.
@@ -156,7 +154,8 @@ int8_t message_chopper(DtSend* dts, uint16_t id,int8_t status, byte* ref,
     }
 }
 //Works the same as message chopper, but 'switches the buffer to the data'.
-int8_t message_pointer(DtSend* dts, int16_t id, byte* ref, uint8_t len,
+int8_t message_pointer(DtSend* dts, int16_t id, uint8_t status,
+                       byte* ref, uint8_t len,
                        byte* buffer,int buffer_len)
 {
     switch( status )

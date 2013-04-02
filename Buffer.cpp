@@ -14,6 +14,7 @@ class Buffer
 {
 public:
     Buffer(byte* array,int length);
+    Buffer();
     uint8_t i,j;
     int len;
     byte* buffer;
@@ -21,6 +22,8 @@ public:
 
 inline void reset(Buffer* b)
 {   b->i=0; b->j=0; }
+Buffer::Buffer()
+{   buffer= NULL; len=0; i=0;j=0; }
 Buffer::Buffer(byte* array,int length)
 {   reset(this);
     buffer = array;

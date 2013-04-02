@@ -7,4 +7,5 @@ readme.html
 
 test/Buffer
 test/DtReceive
+test/dt_connect
 unused/test/DTComm_no_buff

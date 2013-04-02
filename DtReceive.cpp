@@ -54,8 +54,7 @@ inline void report_dt(DtReceive* dtm, uint8_t dt, uint8_t rate)
     }
     
     if( i==0 ) //Put a one if longer than average.
-    {   dtm->cur |= dtm->shift; 
-    }
+    {   dtm->cur |= dtm->shift; }
     dtm->shift = dtm->shift << 1;
 
     if( dtm->shift == 0 ) //All shifted out, go to next byte if `1`(long)
