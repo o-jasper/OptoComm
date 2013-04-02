@@ -104,3 +104,77 @@ void finalize_message(DtSend* dts)
     //Reset both.
     reset(&dts->chk); reset(&dts->nchk);
 }
+//`bits` Indicates for up to 32 bytes which ones should be absorbed into the buffer in
+// multiples at a time. When a bit is `1`, the next byte is connected to it.
+// (idem if next bit is `1`)
+int8_t absorb_bytes(DtSend* dts, byte* ref, int8_t at, uint32_t bits, uint8_t len)
+{
+    if( at>=len ){ return -at; }
+    write_byte(dts, ref[at]);
+    while( bits&(1<<at) && at<len-1 ) //While we also should get the next one...
+    {   at++; 
+        write_byte(dts, ref[at]); //..get it.
+    }
+    return at;
+}
+
+enum //Non-data statusses of data sending.
+{
+    msg_id_1 = 128;
+    msg_id_2 = 129;
+    msg_finalized = 130;
+    msg_send_end = 131;
+};
+
+//Does the handling of a message, including identity, and finalizing. 
+// Status starts at 32 for 1-bit identity and 33 for two.
+//The return value is the resulting status.
+int8_t message_chopper(DtSend* dts, uint16_t id,int8_t status, byte* ref, 
+                       uint32_t bits,uint8_t len)
+{
+    switch( status )
+    {
+
+     //Send identity.(first)
+      case msg_id_1: write_byte(dts, (byte)id);      return 0;
+      case msg_id_2: write_bytes(dts, (byte*)&id,2); return 0;
+      case msg_finalized: return msg_send_end;
+     //Which goes to the part where the message is sent.
+      default: //Now, `status` indicates where on the data.
+          if( status >= len ) //Message is done, send checksums, wrap up.
+          {   finalize_message(dts);
+              return msg_finalized;
+          }
+          //Send the data.
+          // (same as return absorb_bytes(dts, status, bits,len);)
+          write_byte(dts, ref[status]); 
+          while( bits&(1<<status) && status<len-1 ) //While we also should get the next one...
+          {   status++; 
+              write_byte(dts, ref[status]); //..get it.
+          }
+          return status;
+    }
+}
+//Works the same as message chopper, but 'switches the buffer to the data'.
+int8_t message_pointer(DtSend* dts, int16_t id, byte* ref, uint8_t len,
+                       byte* buffer,int buffer_len)
+{
+    switch( status )
+    {
+    case msg_id_1:
+        write_byte(dts, (byte)id);
+        flush_replace_msg(dts, ref,len); //Switch from the buffer to `ref`.
+        return 0;
+    case msg_id_2: 
+        write_bytes(dts, (byte*)&id,2); 
+        flush_replace_msg(dts, ref,len); //Switch from the buffer to `ref`.
+        return 0;
+    case msg_finalized: return msg_send_end;
+        
+    default: //`ref` already 'is' the buffer, no need moving anything.
+             // So if here, must finalize.
+        swap_out_buffer(dts, buffer,buffer_len); //Back to the buffer.
+        finalize_message(dts); //Write checksums.
+        return msg_finalized;
+    }
+}

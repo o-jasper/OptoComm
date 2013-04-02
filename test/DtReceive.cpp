@@ -55,7 +55,7 @@ void sendbit()
     char which = messages[msg_i][msg_j/8]&(1<<(msg_j%8));
     have_delay += (!which ? 100 : 50);
     msg_j++;
-//Failed bit.(likely results in assumed new message) //TODO
+//Failed bit.(likely results in assumed new message)
     if( rand() > fail_prob*RAND_MAX ) 
     {  sdelay(); }
 }

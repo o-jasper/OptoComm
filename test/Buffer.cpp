@@ -9,11 +9,11 @@
 
 //Computer side test for Buffer.
 
+#include <string.h>
 #include "../Buffer.cpp"
 
 #include <time.h>
 #include <assert.h>
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
