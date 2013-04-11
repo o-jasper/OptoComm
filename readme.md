@@ -1,4 +1,11 @@
 
+# Status
+There are basically only tests that do some of the 'logic of the situation'
+(including missed pulses) I havent beeen able to get my atmegas programmed :/
+
+I have been able to send music using light, so presumably a circuit can be made
+that can isolate pulses to some degree.
+
 # Time difference communications
 Idea of this project is to use time differences between pulses to send data
 without clock, and assuming any data may be lost. I want it to be able to accept
@@ -15,9 +22,9 @@ a checksum looks like. For instance starting with a byte identifying what the
 message is about.
 
 The whole idea is that the connection may be unreliable, basically any missed
-data is viewed as 'gone' in this way. Communications as one sided `DTMsg` come
-down to just constantly sending data and hoping the other side can make use of 
-it. If the other side can reply, in principle more effective methods may be 
+data is viewed as 'gone' in this library. Communications as one sided `DtSend`
+come down to just constantly sending data and hoping the other side can make
+use of it. If the other side can reply, in principle more effective methods may be 
 used to send messages by request, or manage communication otherwise.
 
 One worry is that the chip isnt ready to receive(for instance old message still
