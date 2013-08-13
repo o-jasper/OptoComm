@@ -32,7 +32,7 @@ waiting to be discarded)in some pattern, matching the pattern in data is send;
 that particular messages get 'unlucky' and never get sent. You might want to
 use patterns of sending data that avoid this.
 
-## Sending
+## Sending ideas
 
 ### With 555 timer
 [Monostable 555 timer](https://en.wikipedia.org/wiki/555_timer#Monostable), the
@@ -60,18 +60,21 @@ at the data a bit at a time and send it. It also makes checksums at the point it
 is being sent.
 
 `unused/` contains sources i currently dont have a use for.
+(I dont like the inconvenience of checking out some git history)
 (The idea of messages seems more useful than that of streams in microcontrollers..)
-
-A data and offset checker, is also needed, by far most possibilities must not
-pass, because it will catch a lot of non-data when it has not yet found the time
-difference. The current idea is to use `Fletcher
 
 # TODO
 
 * A sender of data.
-* Nothing is tested, probably can be tested partially offline.
+* Tests currently only do the logic.
 * Decoder.
 * `.h` files and stuff.
+* What is the probability of getting data wrong indicated as correct accidentally.
+  
+NOTE: obviously fletcher is not a secure checksum, though if done with a light 
+beam, locating and inserting data into the connection should already be a bunch 
+of work, no attempt is made to prevent the data being manipulated. 
+(Of course, data send can be further checked..)
 
 # License
 

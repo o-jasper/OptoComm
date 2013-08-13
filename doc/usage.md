@@ -1,4 +1,6 @@
 
+NOTE: I havent actually done this yet!!(WIP)
+
 Lets say a robot wants to constantly send out its status. It's code has global
 variables it wants to broadcast:
 
@@ -12,37 +14,39 @@ variables it wants to broadcast:
     } ChangingB;
     DynamicB b;
 
-So it needs a little buffer, the sender object, and an index for knowing wher it
-is in sending stuff.
+It needs a little buffer, the sender object, and an index for knowing where
+it is in sending stuff. So initially, we need:
 
     //Assume Buffer_cnt long enough, at least max(sizeof(ChangingA),sizeof(DynamicB),1)
     byte buffer_arr[Buffer_cnt]; 
     DtSend sender(buffer_arr, Buffer_cnt);
     uint16_t sender_i=0, sender_status = msg_id_1;
 
-The timing intterupt for `DtSend`  (TODO `next_delay` is pseudocode right now..)
+The timing interupt will do:  (TODO `next_delay` is pseudocode right now..)
 
-    if( any_bits_left(&sender) ) //Still bits left in the buffer.
+    if( any_bits_left(&sender) ) //Still bits left in the buffer, keep sending.
     {   next_delay(read_bit(&sender) ? dt_long : dt_short); }
     else //No bits left.
     {  
         switch(sender_i)
-        {
-            case 0: //Currently sending the identifier of the static one.
+        {  //Sends the static one, this one iterates in the data structure of
+           // the thing itself.
+            case 0: 
                 sender_status = message_pointer(&sender, 0,sender_status, &stat,
                                                 buffer_arr,Buffer_cnt);
                 break;
             case 1:
-            //Not chopping at all since we dont know what `ChangingA` looks like,
-            // Basically all-ones catches everything, but copies it all at once
-            //and takes a buffer size >= `sizeof(ChangingA)`.
+           //Since we dont know what it looks like, copies everything into the buffer,
+           //and takes a buffer size >= `sizeof(ChangingA)`.
+           //Since `a` changes, we dont iterate over it.
                 sender_status = message_chopper(&sender, 1,sender_status, &a,
                                                 0xffffffff,sizeof(ChangingA));
                 break;
             case 2:
-            //We can chop this one up, using what we know of the structure;
-            // int16_t,byte,int16_t is respectively 2,1,2 consecutive bytes,
-            // so in 10010 the `1` indicates it whenever the next byte is attached.
+           //We can chop this one up, using what we know of the structure; 
+           // which means the buffer can be smaller.
+           // int16_t,byte,int16_t is respectively 2,1,2 consecutive bytes,
+           // so in 10010 the `1` indicates it whenever the next byte is attached.
                 sender_status = message_chopper(&sender, 1,sender_status, &b,
                                                 0b10010,sizeof(ChangingB));
                 break;
